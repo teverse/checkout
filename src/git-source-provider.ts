@@ -109,8 +109,16 @@ export async function getSource(settings: IGitSourceSettings): Promise<void> {
 
     // Fetch
     core.startGroup('Fetching the repository')
-    const refSpec = refHelper.getRefSpec(settings.ref, settings.commit)
-    await git.fetch(settings.fetchDepth, refSpec)
+    if (settings.fetchDepth <= 0) {
+      await git.fetch()
+      if (settings.commit && !(await git.shaExists(settings.commit))) {
+        const refSpec = refHelper.getRefSpec(settings.ref, settings.commit)
+        await git.fetch(settings.fetchDepth, refSpec)
+      }
+    } else {
+      const refSpec = refHelper.getRefSpec(settings.ref, settings.commit)
+      await git.fetch(settings.fetchDepth, refSpec)
+    }
     core.endGroup()
 
     // Checkout info
