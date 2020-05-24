@@ -42,7 +42,8 @@ export async function getSource(settings: IGitSourceSettings): Promise<void> {
       git,
       settings.repositoryPath,
       repositoryUrl,
-      settings.clean
+      settings.clean,
+      settings.ref
     )
   }
 
