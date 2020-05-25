@@ -59,7 +59,7 @@ export async function prepareExistingDirectory(
       // Remove any conflicting refs/remotes/origin/*
       if (ref) {
         ref = ref.startsWith('refs/') ? ref : `refs/heads/${ref}`
-        if (ref.startsWith('REFS/HEADS/')) {
+        if (ref.startsWith('refs/heads/')) {
           const upperName1 = ref.toUpperCase().substr('REFS/HEADS/'.length)
           const upperName1Slash = `${upperName1}/`
           branches = await git.branchList(true)

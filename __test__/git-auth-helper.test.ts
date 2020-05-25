@@ -725,6 +725,7 @@ async function setup(testName: string): Promise<void> {
     setEnvironmentVariable: jest.fn((name: string, value: string) => {
       git.env[name] = value
     }),
+    shaExists: jest.fn(),
     submoduleForeach: jest.fn(async () => {
       return ''
     }),
