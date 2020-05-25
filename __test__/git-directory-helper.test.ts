@@ -354,7 +354,9 @@ describe('git-directory-helper tests', () => {
     await fs.promises.writeFile(path.join(repositoryPath, 'my-file'), '')
     const mockBranchList = git.branchList as jest.Mock<any, any>
     mockBranchList.mockImplementation(async (remote: boolean) => {
-      return remote ? ['origin/remote-branch-1/conflict', 'origin/remote-branch-2'] : []
+      return remote
+        ? ['origin/remote-branch-1/conflict', 'origin/remote-branch-2']
+        : []
     })
     ref = 'remote-branch-1'
 
@@ -375,7 +377,8 @@ describe('git-directory-helper tests', () => {
       true,
       'origin/remote-branch-1/conflict'
     )
-  })})
+  })
+})
 
 async function setup(testName: string): Promise<void> {
   testName = testName.replace(/[^a-zA-Z0-9_]+/g, '-')
