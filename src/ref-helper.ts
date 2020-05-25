@@ -3,6 +3,8 @@ import {IGitCommandManager} from './git-command-manager'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
+export const tagsRefSpec = '+refs/tags/*:refs/tags/*'
+
 export interface ICheckoutInfo {
   ref: string
   startPoint: string
@@ -54,6 +56,19 @@ export async function getCheckoutInfo(
       throw new Error(
         `A branch or tag with the name '${ref}' could not be found`
       )
+    }
+  }
+
+  return result
+}
+
+export function getRefSpecForAllHistory(ref: string): string[] {
+  const result = ['+refs/heads/*:refs/remotes/origin/*', tagsRefSpec]
+  if (ref) {
+    const upperRef = (ref || '').toUpperCase()
+    if (ref.toUpperCase().startsWith('REFS/PULL/')) {
+      const branch = ref.substring('refs/pull/'.length)
+      result.push(`+${ref}:refs/remotes/pull/${branch}`)
     }
   }
 

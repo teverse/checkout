@@ -3383,6 +3383,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const url_1 = __webpack_require__(835);
 const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
+exports.tagsRefSpec = '+refs/tags/*:refs/tags/*';
 function getCheckoutInfo(git, ref, commit) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!git) {
@@ -3429,6 +3430,18 @@ function getCheckoutInfo(git, ref, commit) {
     });
 }
 exports.getCheckoutInfo = getCheckoutInfo;
+function getRefSpecForAllHistory(ref) {
+    const result = ['+refs/heads/*:refs/remotes/origin/*', exports.tagsRefSpec];
+    if (ref) {
+        const upperRef = (ref || '').toUpperCase();
+        if (ref.toUpperCase().startsWith('REFS/PULL/')) {
+            const branch = ref.substring('refs/pull/'.length);
+            result.push(`+${ref}:refs/remotes/pull/${branch}`);
+        }
+    }
+    return result;
+}
+exports.getRefSpecForAllHistory = getRefSpecForAllHistory;
 function getRefSpec(ref, commit) {
     if (!ref && !commit) {
         throw new Error('Args ref and commit cannot both be empty');
@@ -5634,6 +5647,7 @@ const exec = __importStar(__webpack_require__(986));
 const fshelper = __importStar(__webpack_require__(618));
 const io = __importStar(__webpack_require__(1));
 const path = __importStar(__webpack_require__(622));
+const refHelper = __importStar(__webpack_require__(227));
 const regexpHelper = __importStar(__webpack_require__(528));
 const retryHelper = __importStar(__webpack_require__(587));
 const git_version_1 = __webpack_require__(559);
@@ -5749,14 +5763,10 @@ class GitCommandManager {
             return output.exitCode === 0;
         });
     }
-    fetch(fetchDepth, refSpec) {
+    fetch(refSpec, fetchDepth) {
         return __awaiter(this, void 0, void 0, function* () {
-            const branchesRefSpec = '+refs/heads/*:refs/remotes/origin/*';
-            const tagsRefSpec = '+refs/tags/*:refs/tags/*';
-            refSpec =
-                refSpec && refSpec.length ? refSpec : [branchesRefSpec, tagsRefSpec];
             const args = ['-c', 'protocol.version=2', 'fetch'];
-            if (!refSpec.some(x => x === tagsRefSpec)) {
+            if (!refSpec.some(x => x === refHelper.tagsRefSpec)) {
                 args.push('--no-tags');
             }
             args.push('--prune', '--progress', '--no-recurse-submodules');
@@ -6110,15 +6120,16 @@ function getSource(settings) {
             // Fetch
             core.startGroup('Fetching the repository');
             if (settings.fetchDepth <= 0) {
-                yield git.fetch();
+                let refSpec = refHelper.getRefSpecForAllHistory(settings.ref);
+                yield git.fetch(refSpec);
                 if (settings.commit && !(yield git.shaExists(settings.commit))) {
-                    const refSpec = refHelper.getRefSpec(settings.ref, settings.commit);
-                    yield git.fetch(settings.fetchDepth, refSpec);
+                    refSpec = refHelper.getRefSpec(settings.ref, settings.commit);
+                    yield git.fetch(refSpec);
                 }
             }
             else {
                 const refSpec = refHelper.getRefSpec(settings.ref, settings.commit);
-                yield git.fetch(settings.fetchDepth, refSpec);
+                yield git.fetch(refSpec, settings.fetchDepth);
             }
             core.endGroup();
             // Checkout info
